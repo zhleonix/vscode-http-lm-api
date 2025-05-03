@@ -1,13 +1,15 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { NewServer } from './server';
+import { NewServer, Server } from './server';
+
+let server: Server;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	// const server = newServer()
-	const server = NewServer()
+	server = NewServer();
 
 	const startLmApiServerDisposable = vscode.commands.registerCommand('http-lm-api.startLmApiServer', () => {
 		server.start();
@@ -22,4 +24,15 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	console.log("deactivation started");
+	
+	if (!server) {
+		console.log("Server is not initialized");
+	} else {
+		console.log("Trying to stop server");
+		server.stop();
+	}
+	
+	console.log("deactivation finished");
+}
