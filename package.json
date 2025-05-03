@@ -5,6 +5,7 @@
     "url": "https://github.com/flat35hd99/vscode-http-lm-api.git"
   },
   "displayName": "http-lm-api",
+  "publisher": "flat35hd99",
   "description": "",
   "version": "0.0.1",
   "engines": {
