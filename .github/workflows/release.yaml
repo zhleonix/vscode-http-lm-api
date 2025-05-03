@@ -2,10 +2,14 @@ name: Prepare Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release'
+      version_to_increment:
+        description: 'minor, patch, or major'
         required: true
-        default: '0.0.0'
+        default: 'patch'
+        options:
+          - minor
+          - patch
+          - major
 
 permissions:
   contents: write
@@ -28,10 +32,9 @@ jobs:
         run: |
           git config --local user.name "GitHub Action"
           git config --local user.email "action@github.com"
-          npm run vscode:publish -- ${VERSION}
-          git tag -a ${VERSION} -m "Release ${VERSION}"
+          npm run vscode:publish -- ${VERSION_TO_INCREMENT}
           git push origin main
-          git push origin ${VERSION}
+          git push origin `git describe --tags --abbrev=0`
         env:
-          VERSION: ${{ github.event.inputs.version }}
+          VERSION_TO_INCREMENT: ${{ github.event.inputs.version_to_increment }}
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
