@@ -1,4 +1,7 @@
-# VScode extention that provide HTTP API for vscode Language Model API
+# VScode extention that serve HTTP API using vscode Language Model API
+
+ - [English](https://github.com/flat35hd99/vscode-http-lm-api/blob/main/README.md)
+ - [日本語](https://github.com/flat35hd99/vscode-http-lm-api/blob/main/README_ja.md)
 
 ## Features
 
