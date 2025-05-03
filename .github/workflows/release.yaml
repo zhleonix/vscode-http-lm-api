@@ -32,3 +32,4 @@ jobs:
           git push
         env:
           VERSION: ${{ github.event.inputs.version }}
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
