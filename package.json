@@ -14,8 +14,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "http-lm-api.helloWorld",
-        "title": "Hello World"
+        "command": "http-lm-api.startLmApiServer",
+        "title": "Start lm api Server"
+      },
+      {
+        "command": "http-lm-api.stopLmApiServer",
+        "title": "Stop lm api Server"
       }
     ]
   },
