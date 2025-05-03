@@ -21,7 +21,10 @@ If you can use GitHub Copilot, then (probably) you can use this
 
 ## Extension Settings
 
-TODO
+| name                                 | default | description                                                              |
+|-|-|-|
+|`http-lm-api.port`                    |`59603`  |The port number for the API server listening                              |
+|`http-lm-api.startServerAutomatically`|`true`   |If the server start automatically after the vscode initialization finished|
 
 <!-- Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
@@ -31,15 +34,3 @@ This extension contributes the following settings:
 
 * `myExtension.enable`: Enable/disable this extension.
 * `myExtension.thing`: Set to `blah` to do something. -->
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 0.0.1
-
-Initial release!
