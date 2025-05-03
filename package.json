@@ -1,5 +1,9 @@
 {
   "name": "http-lm-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flat35hd99/vscode-http-lm-api.git"
+  },
   "displayName": "http-lm-api",
   "description": "",
   "version": "0.0.1",
