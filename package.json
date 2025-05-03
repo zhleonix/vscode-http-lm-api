@@ -14,7 +14,10 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "// TODO: This event prefer ?": "",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -38,7 +41,7 @@
         },
         "http-lm-api.startServerAutomatically": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Automatically start the server when the extension is activated"
         }
       }

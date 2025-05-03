@@ -16,6 +16,6 @@ export function getConfig(): Config {
     const config = vscode.workspace.getConfiguration('http-lm-api');
     return {
         port: config.get<number>('port', 59603),
-        startAutomatically: config.get<boolean>('startAutomatically', false),
+        startAutomatically: config.get<boolean>('startAutomatically', true),
     };
 }
