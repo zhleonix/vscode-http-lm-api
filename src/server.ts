@@ -45,62 +45,9 @@ function newExpressServer() {
     })
 
     app.get('/', (_, res) => {
-        res.send('Hello World!');
+        res.send('ok');
     });
 
-    // app.post('/v1/chat/completions', async (req, res) => {
-    //     const body = req.body;
-
-    //     const models = await vscode.lm.selectChatModels({id: body.model});
-    //     const model = models.find((model) => {
-    //         return model.id === body.model;
-    //     });
-    //     if (!model) {
-    //         res.status(400).json({
-    //             error: `model not found`,
-    //         })
-    //         return;
-    //     }
-
-    //     const chatRequest = body.messages.map((message: any) => {
-    //         return new vscode.LanguageModelChatMessage(message.role, message.content);
-    //     });
-
-    //     const chatResponse = await model.sendRequest(chatRequest);
-    //     try {
-    //         let result: String[] = []
-    //         for await (const chunk of chatResponse.stream) {
-    //             if (chunk instanceof vscode.LanguageModelTextPart) {
-    //                 result.push(chunk.value)
-    //             } else if (chunk instanceof vscode.LanguageModelToolCallPart) {
-    //                 console.log("tool call happend", chunk);
-    //                 // result.push(JSON.stringify(chunk))
-    //             }
-    //         }
-
-    //         res.json({
-    //             id: 'xxx',
-    //             object: 'chat.completion',
-    //             created: 1741569952,
-    //             model: model.id,
-    //             choices: [
-    //                 {
-    //                     index: 0,
-    //                     message: {
-    //                         role: 'assistant',
-    //                         content: result.join(''),
-    //                     },
-    //                     finish_reason: 'stop',
-    //                 }
-    //             ],
-    //         });
-    //     } catch (e) {
-    //         console.error(e);
-    //         res.status(500).json({
-    //             error: 'stream decode failed'
-    //         })
-    //     }
-    // })
     app.post('/chat/completions', async (req, res) => {
         const body = req.body;
 
