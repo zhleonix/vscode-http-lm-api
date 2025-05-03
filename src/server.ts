@@ -2,23 +2,29 @@ import * as vscode from 'vscode';
 import * as http from 'http';
 import * as express from 'express';
 import * as morgan from 'morgan';
+import { Config } from './config';
 
-import { pipeline } from "node:stream/promises";
+
 
 export type Server = {
     start: () => void;
     stop: () => void;
 }
 
-export function NewServer() {
+export function NewServer(config: Config): Server {
     const server = newExpressServer();
     // shutdown するときに server への参照が必要なのであらかじめ確保しておく
     let startedServer: http.Server | undefined;
 
     return {
         start: () => {
-            startedServer = server.listen(8080, () => {
-                vscode.window.showInformationMessage('LM API server is running on port 8080');
+            const port = config.port;
+            if (startedServer) {
+                vscode.window.showInformationMessage('LM API server is already running');
+                return;
+            }
+            startedServer = server.listen(port, () => {
+                vscode.window.showInformationMessage(`LM API server is running on port ${port}`);
             });
         },
         stop: () => {

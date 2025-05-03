@@ -26,7 +26,23 @@
         "command": "http-lm-api.stopLmApiServer",
         "title": "Stop lm api Server"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Provide openai compatible API using VScode Language Model API",
+      "type": "object",
+      "properties": {
+        "http-lm-api.port": {
+          "type": "number",
+          "default": 59603,
+          "description": "Port number for the HTTP server"
+        },
+        "http-lm-api.startServerAutomatically": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start the server when the extension is activated"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

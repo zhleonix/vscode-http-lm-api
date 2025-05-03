@@ -1,15 +1,13 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { NewServer, Server } from './server';
+import { getConfig } from './config';
 
 let server: Server;
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+
 export function activate(context: vscode.ExtensionContext) {
-	// const server = newServer()
-	server = NewServer();
+	const config = getConfig();
+	server = NewServer(config);
 
 	const startLmApiServerDisposable = vscode.commands.registerCommand('http-lm-api.startLmApiServer', () => {
 		server.start();
@@ -21,6 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(startLmApiServerDisposable);
 	context.subscriptions.push(stopLmApiServerDisposable);
+
+	if (config.startAutomatically) {
+		server.start();
+	} else {
+		vscode.window.showInformationMessage('LM API server is not started automatically. Use "Start LM API Server" command to start it.');
+	}
 }
 
 // This method is called when your extension is deactivated

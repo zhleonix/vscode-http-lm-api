@@ -2,8 +2,8 @@
 
 ## Features
 
- - OpenAI API compatible
- - Start http server listening on tcp/8080
+ - Provide API compatible with OpenAI API using VScode Language Model API.
+   - You can use the API only install vscode extension.
 
 <!-- Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
