@@ -3,6 +3,7 @@ name: Create Release Page
 on:
   push:
     tags:
+      - '*'
 
 jobs:
   build:
