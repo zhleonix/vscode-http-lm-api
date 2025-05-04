@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
+
 import * as http from 'http';
 import * as express from 'express';
 import * as morgan from 'morgan';
+
 import { Config } from './config';
-
-
+import { logger } from './logger';
 
 export type Server = {
     start: () => void;
@@ -43,10 +44,13 @@ function newExpressServer() {
 
     const app = express.default();
 
+    logger.info("server started");
+
     app.use(morgan.default('dev'));
     app.use(express.json());
     app.use((req, res, next) => {
-        console.log("request body", req.body)
+        logger.http(req.method, req.path.toString());
+        logger.debug("request body: %s", JSON.stringify(req.body));
         next()
     })
 
@@ -91,7 +95,6 @@ function newExpressServer() {
     
             for await (const chunk of chatResponse.stream) {
                 if (chunk instanceof vscode.LanguageModelTextPart) {
-                    console.log("text part", chunk.value);
                     const json = JSON.stringify({
                         id: 'yyy',
                         object: 'chat.completion.chunk',
@@ -104,10 +107,11 @@ function newExpressServer() {
                             }
                         ],
                     });
-                    console.log("json", json);
+                    logger.debug(`text part: ${chunk.value}`);
+                    logger.debug(`json: ${json}`);
                     res.write(`data: ${json}\n\n`);
                 } else if (chunk instanceof vscode.LanguageModelToolCallPart) {
-                    console.log("tool call happend", chunk);
+                    logger.debug(`tool call happened: ${chunk}`);
                     // result.push(JSON.stringify(chunk))
                 }
             }
@@ -134,7 +138,7 @@ function newExpressServer() {
                     if (chunk instanceof vscode.LanguageModelTextPart) {
                         result.push(chunk.value)
                     } else if (chunk instanceof vscode.LanguageModelToolCallPart) {
-                        console.log("tool call happend", chunk);
+                        logger.debug("tool call happend", chunk);
                         // result.push(JSON.stringify(chunk))
                     }
                 }
@@ -155,11 +159,11 @@ function newExpressServer() {
                         }
                     ],
                 }
-                console.log("response body", JSON.stringify(responseBody, null, 2));
+                logger.debug("response body", JSON.stringify(responseBody, null, 2));
     
                 res.json(responseBody);
             } catch (e) {
-                console.error(e);
+                logger.error(`Error occurred while processing request: ${e}`);
                 res.status(500).json({
                     error: 'stream decode failed'
                 })
