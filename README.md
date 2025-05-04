@@ -16,6 +16,12 @@ For example if there is an image subfolder under your extension project workspac
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow. -->
 
+## Motivation
+
+VScode provides Language Models API to vscode extensions. For now, GitHub copilot provides LLM access for fixed fee. If we can use this access via OpenAI compatible HTTP API, we obtain strong power!
+
+Furthermore, someone look llm proxy software that do not require additional installation, this vsvode extension is good solution.
+
 ## Requirements
 
 This extension uses VScode Language Model API.
