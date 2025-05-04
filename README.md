@@ -42,3 +42,4 @@ If you can use GitHub Copilot, then (probably) you can use this
    - `POST /chat/completion`
      - Supporting stream mode.
    - `GET /v1/models`
+   - `GET /models`

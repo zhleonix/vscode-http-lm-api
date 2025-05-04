@@ -47,10 +47,12 @@ function newExpressServer() {
     logger.info("server started");
 
     app.use(morgan.default('dev'));
-    app.use(express.json());
+    app.use(express.json({
+        limit: '100mb',
+    }));
     app.use((req, res, next) => {
         logger.http(req.method, req.path.toString());
-        logger.debug("request body: %s", JSON.stringify(req.body));
+        logger.debug("request body: " + JSON.stringify(req.body));
         next()
     })
 
@@ -172,6 +174,19 @@ function newExpressServer() {
     })
 
     app.get('/v1/models', async (req, res) => {
+        const models = await vscode.lm.selectChatModels();
+        res.json(models.map((model) => {
+            return {
+                id: model.id,
+                object: 'model',
+                owned_by: 'user',
+                permission: [],
+            }
+        }))
+    })
+    
+    // TODO: Do not repeat the same code as above
+    app.get('/models', async (req, res) => {
         const models = await vscode.lm.selectChatModels();
         res.json(models.map((model) => {
             return {
