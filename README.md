@@ -7,6 +7,7 @@
 
  - Provide API compatible with OpenAI API using VScode Language Model API.
    - You can use the API only install vscode extension.
+ - [Available all models](https://docs.github.com/en/copilot/using-github-copilot/ai-models/changing-the-ai-model-for-copilot-chat) for GitHub Copilot chat
 
 <!-- Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
@@ -33,13 +34,11 @@ If you can use GitHub Copilot, then (probably) you can use this
 | name                                 | default | description                                                              |
 |-|-|-|
 |`http-lm-api.port`                    |`59603`  |The port number for the API server listening                              |
-|`http-lm-api.startServerAutomatically`|`true`   |If the server start automatically after the vscode initialization finished|
+|`http-lm-api.startServerAutomatically`|`true`   |If true, start the server automatically after the vscode initialization finished|
 
-<!-- Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Specifications
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something. -->
+ - OpenAI compatible
+   - `POST /chat/completion`
+     - Supporting stream mode.
+   - `GET /v1/models`
