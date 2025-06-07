@@ -60,6 +60,11 @@ function newExpressServer() {
         res.send('ok');
     });
 
+    app.post('/v1/chat/completions', (req, res, next) => {
+        req.url = '/chat/completions';
+        next();
+    });
+
     app.post('/chat/completions', async (req, res) => {
         const body = req.body;
 
@@ -117,7 +122,7 @@ function newExpressServer() {
                     // result.push(JSON.stringify(chunk))
                 }
             }
-            res.end();
+            res.end('data: [DONE]\n\n');
 
         } else {
             const chatRequest = body.messages.map((message: any) => {
