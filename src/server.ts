@@ -6,6 +6,7 @@ import * as morgan from 'morgan';
 
 import { Config } from './config';
 import { logger } from './logger';
+import { log } from 'console';
 
 export type Server = {
     start: () => void;
@@ -53,8 +54,8 @@ function newExpressServer() {
     app.use((req, res, next) => {
         logger.http(req.method, req.path.toString());
         logger.debug("request body: " + JSON.stringify(req.body));
-        next()
-    })
+        next();
+    });
 
     app.get('/', (_, res) => {
         res.send('ok');
@@ -78,32 +79,22 @@ function newExpressServer() {
             })
             return;
         }
-
+        const chatRequest = mapMessagesToChatMessages(body);
+        const chatOptions: vscode.LanguageModelChatRequestOptions = {
+            tools:  mapMessagesToChatMessagesWithToolCalls(body)
+        };
         if (body.stream) {
-            const chatRequest = body.messages.map((message: any) => {
-                const role = message.role === 'assistant' ? message.role : 'user';
-                let content: string | Array<vscode.LanguageModelTextPart>
-                if (message.content instanceof Array) {
-                    content = message.content.map((part: any) => {
-                        return new vscode.LanguageModelTextPart(part.text);
-                    });
-                } else {
-                    content = message.content;
-                }
-                return new vscode.LanguageModelChatMessage(role, content);
-            });
-    
-            const chatResponse = await model.sendRequest(chatRequest);
+            const chatResponse = await model.sendRequest(chatRequest,chatOptions);
             res.writeHead(200, {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
             });
-    
+            const resp_id = generateTimeSequenceId();
             for await (const chunk of chatResponse.stream) {
                 if (chunk instanceof vscode.LanguageModelTextPart) {
                     const json = JSON.stringify({
-                        id: 'yyy',
+                        id: resp_id,
                         object: 'chat.completion.chunk',
                         choices: [
                             {
@@ -120,38 +111,39 @@ function newExpressServer() {
                 } else if (chunk instanceof vscode.LanguageModelToolCallPart) {
                     logger.debug(`tool call happened: ${chunk}`);
                     // result.push(JSON.stringify(chunk))
+                    const json = JSON.stringify({
+                        id: chunk.callId,
+                        type: 'function',
+                        function: {
+                            name: chunk.name,
+                            arguments: chunk.input ? JSON.stringify(chunk.input) : undefined,
+                        }   
+                    });
+                    logger.debug(`text part: ${JSON.stringify(chunk)}`);
+                    logger.debug(`json: ${json}`);
+                    res.write(`data: ${json}\n\n`);
                 }
             }
             res.end('data: [DONE]\n\n');
 
         } else {
-            const chatRequest = body.messages.map((message: any) => {
-                const role = message.role === 'assistant' ? message.role : 'user';
-                let content: string | Array<vscode.LanguageModelTextPart>
-                if (message.content instanceof Array) {
-                    content = message.content.map((part: any) => {
-                        return new vscode.LanguageModelTextPart(part.text);
-                    });
-                } else {
-                    content = message.content;
-                }
-                return new vscode.LanguageModelChatMessage(role, content);
-            });
-    
-            const chatResponse = await model.sendRequest(chatRequest);
+            
             try {
-                let result: String[] = []
+                logger.debug("chat request: " + JSON.stringify(chatRequest, null, 2));
+                const chatResponse = await model.sendRequest(chatRequest,chatOptions);
+                let result: String[] = [];
+                let toolCalls: vscode.LanguageModelToolCallPart[] = [];
                 for await (const chunk of chatResponse.stream) {
                     if (chunk instanceof vscode.LanguageModelTextPart) {
                         result.push(chunk.value)
                     } else if (chunk instanceof vscode.LanguageModelToolCallPart) {
                         logger.debug("tool call happend", chunk);
-                        // result.push(JSON.stringify(chunk))
+                        toolCalls.push(chunk);
                     }
                 }
     
                 const responseBody = {
-                    id: 'xxx',
+                    id: generateTimeSequenceId(),
                     object: 'chat.completion',
                     created: 1741569952,
                     model: model.id,
@@ -161,16 +153,30 @@ function newExpressServer() {
                             message: {
                                 role: 'assistant',
                                 content: result.join(''),
+                                tool_calls: toolCalls.map((toolCall) => {
+                                    return {
+                                        id: toolCall.callId,
+                                        type: 'function',
+                                        function: {
+                                            name: toolCall.name,
+                                            arguments: toolCall.input ? JSON.stringify(toolCall.input) : undefined,
+                                        }
+                                    };
+                                }),
                             },
                             finish_reason: 'stop',
                         }
                     ],
-                }
-                logger.debug("response body", JSON.stringify(responseBody, null, 2));
+                };
+                logger.debug("response body: " + JSON.stringify(responseBody, null, 2));
     
                 res.json(responseBody);
             } catch (e) {
-                logger.error(`Error occurred while processing request: ${e}`);
+                if (e instanceof Error) {
+                    logger.error(`Error occurred while processing request: ${e}, \n${e.stack}`);
+                } else {
+                    logger.error(`Error occurred while processing request: ${e}`);
+                }
                 res.status(500).json({
                     error: 'stream decode failed'
                 })
@@ -204,4 +210,122 @@ function newExpressServer() {
     })
 
     return app;
+}
+
+function mapMessagesToChatMessages(body: any) {
+    return body.messages.map((message: any) => {
+        const role = (message.role === 'assistant')? message.role : 'user'; //message.role;//
+        let content: string | Array<vscode.LanguageModelTextPart|vscode.LanguageModelToolCallPart|vscode.LanguageModelToolResultPart>;
+        //if ( message.role === 'tool') {
+            /*
+
+                {
+                    "role": "tool",
+                    "tool_call_id": "call_QqGp4rWAU66O2emdXlvkaxwd",
+                    "content": "{\"status\": \"success\", \"report\": \"The current time in new york is 2025-06-21 09:13:04 EDT-0400\"}"
+                }
+
+
+            *//*
+            return new vscode.LanguageModelChatMessage(role,[
+                new vscode.LanguageModelToolResultPart(
+                    message.tool_call_id,
+                    message.content instanceof Array ?
+                        message.content.map((part: any) => {
+                            return new vscode.LanguageModelTextPart(part.text);
+                        }) : [message.content]//[new vscode.LanguageModelTextPart(message.content)],
+                    )]);*/
+        //}
+        if ( message.tool_calls ) {
+            /*
+                {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "id": "call_QqGp4rWAU66O2emdXlvkaxwd",
+                            "type": "function",
+                            "function": {
+                                "name": "get_current_time",
+                                "arguments": "{\"city\": \"new york\"}"
+                            }
+                        }
+                    ]
+                }
+            */
+            return new vscode.LanguageModelChatMessage(role, message.tool_calls.map((toolCall: any) => {
+                return new vscode.LanguageModelToolCallPart(
+                    toolCall.id,
+                    toolCall.function.name,
+                    toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : undefined
+                );
+            }));
+        }
+        
+        if (message.content instanceof Array) {
+            content = message.content.map((part: any) => {
+                return new vscode.LanguageModelTextPart(part.text);
+            });
+        } else {
+            content = message.content;
+        }
+        
+        return new vscode.LanguageModelChatMessage(role, content);
+    });
+}
+
+function mapMessagesToChatMessagesWithToolCalls(body: any) : vscode.LanguageModelChatTool[] {
+    if (!body.tools) {
+        return [];
+    }
+
+    /* Tools attribute Example in request body
+        [
+        {
+            "type": "function",
+            "function": {
+            "name": "get_weather",
+            "description": "Retrieves the current weather report for a specified city.\n\nArgs:\n    city (str): The name of the city for which to retrieve the weather report.\n\nReturns:\n    dict: status and result or error msg.\n",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                "city": {
+                    "type": "string"
+                }
+                }
+            }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+            "name": "get_current_time",
+            "description": "Returns the current time in a specified city.\n\nArgs:\n    city (str): The name of the city for which to retrieve the current time.\n\nReturns:\n    dict: status and result or error msg.\n",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                "city": {
+                    "type": "string"
+                }
+                }
+            }
+            }
+        }
+        ]
+
+
+    */
+    return body.tools.map((tool: any) => {
+
+        return {
+            name: tool.function.name,
+            description: tool.function.description,
+            inputSchema: tool.function.parameters,
+        };
+    });
+}
+
+function generateTimeSequenceId(): string {
+  const timestamp = Date.now(); // milliseconds since epoch
+  const random = Math.random().toString(36).substring(2, 8); // random 6 chars
+  return `chatcmpl-${timestamp}-${random}`;
 }
